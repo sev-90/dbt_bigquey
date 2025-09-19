@@ -1,0 +1,68 @@
+version: 2
+
+sources:
+  - name: raw_data_bq
+    schema: staging
+
+    tables:
+      - name: orders
+
+seeds:
+  - name: orders
+    description: "Seed data containing 20 sample e-commerce orders with status and amount."
+    columns:
+      - name: order_id
+        description: "Unique identifier for the order."
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Unique identifier for the customer who placed the order."
+        tests:
+          - not_null
+
+      - name: order_date
+        description: "The date the order was placed."
+        tests:
+          - not_null
+
+      - name: status
+        description: "The order status (Pending, Shipped, Delivered, Cancelled)."
+        tests:
+          - accepted_values:
+              values: ['Pending', 'Shipped', 'Delivered', 'Cancelled']
+
+      - name: amount
+        description: "Order total in USD."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('orders')
+              field: order_id
+
+models:
+  - name: stg_orders
+    description: "Cleaned and transformed version of the raw orders seed with additional derived fields."
+    columns:
+      - name: order_id
+        description: "Order identifier carried from raw data."
+        tests:
+          - unique
+          - not_null
+
+      - name: order_month
+        description: "Year-month string derived from order_date."
+        tests:
+          - not_null
+
+      - name: is_cancelled
+        description: "Boolean flag indicating if the order was cancelled."
+        tests:
+          - not_null
+
+      - name: order_value_bucket
+        description: "Bucketized order size (Low, Medium, High)."
+        tests:
+          - accepted_values:
+              values: ['Low', 'Medium', 'High']
